@@ -3,7 +3,7 @@
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [[org.clojure/clojure "1.9.0"]
                  [io.forward/clojure-mail "1.0.7"]
                  [javax.mail/mail "1.4.3"]
                  ;; May not need postal... don't like the docs.
@@ -13,3 +13,4 @@
   :main ^:skip-aot tychicus.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
+           

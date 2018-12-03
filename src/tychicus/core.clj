@@ -6,24 +6,50 @@
    [clojure-mail.gmail :as gmail]
    [clojure-mail.events :as events]
    [clojure-mail.message :as message :refer [read-message]]
-   [postal.core :as postal]
-   [environ.core :refer [env]])
-  (:import (javax.mail Message)))
+   [clojure.pprint :refer [pprint]]
+   [environ.core :refer [env]]
+   [clojure.spec.alpha :as s]))
+
+(def email-regex #"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$")
+(def number-regex #"[0-9]+")
+
+(s/def ::email-string (s/and string? #(re-matches email-regex %)))
+(s/def ::number-string (s/and string? #(re-matches number-regex %)))
+(s/def ::boolean-string (s/and string? #(contains? #{"true" "false"} %)))
+
+(s/valid? ::boolean-string "true")
+
+(s/def ::tychicus-username ::email-string)
+(s/def ::tychicus-password string?)
+(s/def ::tychicus-forwarding-address ::email-string)
+
+(s/def ::tychicus-smtp-port ::number-string)
+(s/def ::tychicus-smtp-host string?)
+
+(s/def ::tychicus-debug ::boolean-string)
+
+(s/def ::config (s/keys :req-un [::tychicus-username ::tychicus-password
+                              ::tychicus-forwarding-address
+                              ::tychicus-smtp-port ::tychicus-smtp-host]
+                        :opt-un [::tychicus-debug]))
+
+(when (not (s/valid? ::config env)
+           (timbre/error (s/explain ::config env))
+           (System/exit 1)))
 
 (def USERNAME (env :tychicus-username))
 (def PASSWORD (env :tychicus-password))
+
 (def FORWARDING_ADDRESS (env :tychicus-forwarding-address))
+
 (def SMTP_HOST (env :tychicus-smtp-host))
 (def SMTP_PORT (env :tychicus-smtp-port))
+
 (def DEBUG (-> (env :tychicus-debug) true? str))
 
-(def gstore (gmail/store USERNAME PASSWORD))
-
-(def inbox-messages (mail/inbox gstore))
-
-(def email (first inbox-messages))
-
-(defn send-email [imap-message]
+(defn send-email
+  "Forwards a received IMAP message to the configured address."
+  [imap-message]
   (let [props (java.util.Properties.)]
 
     (doto props
@@ -55,30 +81,31 @@
       (.setSubject msg (.getSubject imap-message))
       (.setContent msg (.getContent imap-message))
       (.saveChanges msg)
-      msg
       (javax.mail.Transport/send msg))))
 
-(def manager
-  (do
-    (try (.stop manager) (catch Exception e))
-    (let [s (mail/get-session "imaps")
-          gstore (mail/store "imaps" s "imap.gmail.com" USERNAME PASSWORD)
-          folder (mail/open-folder gstore "inbox" :readonly)
-          im (events/new-idle-manager s)]
-      (events/add-message-count-listener (fn [e]
-                                           (let [mes (->> e
-                                                          :messages
-                                                          (map read-message))
-                                                 subjects (map :subject mes)]
-                                             (println "test" subjects)))
-                                         #(prn "removed" %)
-                                         folder
-                                         im))))
+(defn noop [& args])
 
-(.stop manager)
+(defn handle-message 
+  "Handles each incoming message, logging it and attempting to forward it."
+  [message]
+  (let [message-map (read-message message :fields [:subject :from :content-type])]
+    (timbre/info "Received message: " message-map)
+    (try (send-email message)
+         (catch Exception e
+           (timbre/error e)))))
 
 (defn -main
-  "I don't do a whole lot ... yet."
+  "Asks the IMAP folder for push notifications whenver a new message comes, and handles it accordingly."
   [& args]
-  (println "Hello, World!"))
+  (let [s (mail/get-session "imaps")
+        gstore (mail/store "imaps" s "imap.gmail.com" USERNAME PASSWORD)
+        folder (mail/open-folder gstore "inbox" :readonly)
+        im (events/new-idle-manager s)]
+    (events/add-message-count-listener (fn [event]
+                                         (let [{:keys [messages]} event]
+                                           (doseq [m messages]
+                                             (handle-message m))))
+                                       noop
+                                       folder
+                                       im)))
 

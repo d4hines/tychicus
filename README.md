@@ -1,36 +1,24 @@
-# tychicus
+# Tychicus
 
-FIXME: description
+Have you ever needed a ready and able messenger to forward emails between two accounts? Tychicus is your man! 
+
+Currently is hard-coded against certain GMail protocols, but uses IMAP and SMTP via Java Mail, so could easily be extended to support other providers.
 
 ## Installation
 
-Download from http://example.com/FIXME.
+Build from the source or use the docker file: 
+
 
 ## Usage
 
-FIXME: explanation
-
-    $ java -jar tychicus-0.1.0-standalone.jar [args]
-
-## Options
-
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
+```
+    $ java -jar tychicus-0.1.0-standalone.jar
+```
 
 ## License
 
-Copyright © 2018 FIXME
+Copyright © 2018 Daniel Hines
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
+
