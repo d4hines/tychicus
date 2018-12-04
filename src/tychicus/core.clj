@@ -39,9 +39,14 @@
 (defn check-env-vars
   "Checks environmental vars against the spec."
   []
-  (when (not (s/valid? ::config env))
-    (timbre/error (s/explain ::config env))
-    (System/exit 1)))
+  (let [tychicus-env (select-keys env
+                                  [:tychicus-username :tychicus-password
+                                   :tychicus-forwarding-address :tychicus-folder
+                                   :tychicus-smtp-host :tychicus-smtp-port
+                                   :tyichus-imap-host])]
+      (when (not (s/valid? ::config tychicus-env))
+        (timbre/error (s/explain ::config tychicus-env))
+        (System/exit 1))))
 
 (def USERNAME (env :tychicus-username))
 (def PASSWORD (env :tychicus-password))
