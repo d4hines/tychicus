@@ -1,15 +1,20 @@
 # Tychicus
 
  > Tychicus, the dear brother and faithful servant in the Lord, will tell you everything, so that you also may know how I am and what I am doing.
-- Paul of Tarsus
+- Paul of Tarsus, Epistle to the Ephesians
 
 Have you ever needed a ready and able messenger to forward emails between two accounts? Tychicus is your man! Just provide him at a specific IMAP folder, give him a forwarding address, and he'll make sure your important emails get where they need to go!
 
-I've only tested this for my personal use with Gmail, but it uses really standard stuff, and should work anywhere. Please let me know if you encounter any issues in using it.
+I've only tested this for my personal use with Gmail, but it uses really standard stuff, and should work anywhere. Please let me know if you encounter any issues in using it. Also, the sparse instructions assume familiarity with Leiningen and/or Docker - if you need more guidance, please just let me know.
 
 ## Installation, Configuration and Usage
+To build and run from the source, run:
+```
+$ lein uberjar
+$ java -jar ./target/uberjar/tychicus-0.1.0-standalone.jar
+```
 
-I recommend using Docker. Here's an example configuration for Gmail:
+However, I recommend using Docker. Here's an example configuration for Gmail:
 ```bash
 docker run \
 -e "TYCHICUS_USERNAME=youremail@gmail.com" \
