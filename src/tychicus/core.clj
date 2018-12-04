@@ -43,7 +43,7 @@
                                   [:tychicus-username :tychicus-password
                                    :tychicus-forwarding-address :tychicus-folder
                                    :tychicus-smtp-host :tychicus-smtp-port
-                                   :tyichus-imap-host])]
+                                   :tychicus-imap-host])]
       (when (not (s/valid? ::config tychicus-env))
         (timbre/error "Environmental variables were not configured properly for Tychicus. Please see failed spec below:")
         (timbre/error (s/explain ::config tychicus-env))
