@@ -101,7 +101,7 @@
 
       ;; Some messages come in as strings, others as multi-parts, so we have to check
       ;; the type before dispatching.
-      (if (= (type content) java.lang.Strng)
+      (if (= (type content) java.lang.String)
         (.setText msg content)
         (.setContent msg content))
 
