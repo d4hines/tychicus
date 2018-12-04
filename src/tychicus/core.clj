@@ -44,10 +44,10 @@
                                    :tychicus-forwarding-address :tychicus-folder
                                    :tychicus-smtp-host :tychicus-smtp-port
                                    :tychicus-imap-host])]
-      (when (not (s/valid? ::config tychicus-env))
-        (timbre/error "Environmental variables were not configured properly for Tychicus. Please see failed spec below:")
-        (timbre/error (s/explain ::config tychicus-env))
-        (System/exit 1))))
+    (when (not (s/valid? ::config tychicus-env))
+      (timbre/error "Environmental variables were not configured properly for Tychicus. Please see failed spec below:")
+      (timbre/error (s/explain ::config tychicus-env))
+      (System/exit 1))))
 
 (def USERNAME (env :tychicus-username))
 (def PASSWORD (env :tychicus-password))
@@ -87,7 +87,8 @@
                             (javax.mail.PasswordAuthentication.
                              USERNAME PASSWORD)))
           session (javax.mail.Session/getInstance props authenticator)
-          sender-raw (.toString (.getSender imap-message))
+          sender-raw (-> imap-message message/sender :address)
+          content (.getContent imap-message)
           regex #"(.*)(<.+>)"
           sender (str/replace (last (re-matches regex sender-raw)) #"<|>" "")
           msg     (javax.mail.internet.MimeMessage. session)]
@@ -97,7 +98,13 @@
                       (javax.mail.internet.InternetAddress/parse FORWARDING_ADDRESS))
 
       (.setSubject msg (str sender ": " (.getSubject imap-message)))
-      (.setContent msg (.getContent imap-message))
+
+      ;; Some messages come in as strings, others as multi-parts, so we have to check
+      ;; the type before dispatching.
+      (if (= (type content) java.lang.Strng)
+        (.setText msg content)
+        (.setContent msg content))
+
       (.saveChanges msg)
       (javax.mail.Transport/send msg))))
 
