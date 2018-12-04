@@ -87,10 +87,8 @@
                             (javax.mail.PasswordAuthentication.
                              USERNAME PASSWORD)))
           session (javax.mail.Session/getInstance props authenticator)
-          sender-raw (-> imap-message message/sender :address)
+          sender(-> imap-message message/sender :address)
           content (.getContent imap-message)
-          regex #"(.*)(<.+>)"
-          sender (str/replace (last (re-matches regex sender-raw)) #"<|>" "")
           msg     (javax.mail.internet.MimeMessage. session)]
 
       (.setRecipients msg
